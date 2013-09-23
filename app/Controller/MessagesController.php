@@ -50,17 +50,18 @@ class MessagesController extends AppController{
 				$conditions['DATE(Message.timestamp)']=$filters['date'];
 			}
 			
+			if($filters['id']!=""){
+				$conditions['Message.id']=$filters['id'];
+			}
+
 			if(!empty($filters['characters'])){
-				//$conditions['LEN(Message.html) > ']=$filters['characters'];
+				$conditions['CHAR_LENGTH(Message.html) > ']=$filters['characters'];
 			}
 			
 			// Filter messages
-			if($filters['id']!=""){
-				$messages[0]=$this->Message->read(null,$filters['id']);
-			}
-			else{
-				$messages=$this->Message->find('all', array('conditions'=>$conditions));
-			}
+			
+			$messages=$this->Message->find('all', array('conditions'=>$conditions));
+			
 
 			foreach ($messages as $key=>$message) {
 				$match=null;

@@ -4,15 +4,15 @@
 	echo $this->form->create('Filter');
 	?>
 		<?php 
-		echo $this->form->input('id',array('class'=>'filter-input','label'=>array('class'=>'filter-label')));
-		echo $this->form->input('date',array('class'=>'filter-input','label'=>array('class'=>'filter-label')));
-		echo $this->form->input('jammeur',array('options'=>$jammeurs,'selected' => 0,'class'=>'filter-input','label'=>array('class'=>'filter-label')));
-		echo $this->form->input('keyword',array('class'=>'filter-input','label'=>array('class'=>'filter-label')));
+		echo $this->form->input('id',array('class'=>'filter-input'));
+		echo $this->form->input('date',array('class'=>'filter-input'));
+		echo $this->form->input('jammeur',array('options'=>$jammeurs,'selected' => 0,'class'=>'filter-input'));
+		echo $this->form->input('keyword',array('class'=>'filter-input'));
 		$minchar[0]=0;
 		$minchar[100]=100;
 		$minchar[500]=500;
 		$minchar[5000]=5000;
-		echo $this->form->input('characters',array('options'=>$minchar, 'class'=>'filter-input','label'=>array('class'=>'filter-label')));
+		echo $this->form->input('characters',array('options'=>$minchar, 'class'=>'filter-input','label' => 'Min. dcaracteres'));
 		?>
 	</form>
 	</br>

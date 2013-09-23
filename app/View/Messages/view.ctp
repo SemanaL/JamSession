@@ -1,6 +1,8 @@
+<h4><a href="<?php echo $this->Html->url(array('controller' => 'messages', 'action' => 'index'));?>">Retour</a></h4>
+</br>
 <?php 
 if($content['404']==true){ ?>
-<h3>Message non trouvé</h3>
+<h4>Message non trouvé</h4>
 <?php } else { ?>
 <h4>ID : <span id='id'><?php echo $content['id'];?></span></h4>
 <h4>Envoyé par : <span id='jammeur'><?php echo $content['jammeur'];?></span></h4>
