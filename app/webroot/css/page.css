@@ -7,3 +7,52 @@ body > #wrap {
 	min-height: 100%;
 }
 
+h4{
+	font-weight:normal;
+}
+
+#filter-container{
+position:relative;
+width:300px;
+float:left;
+}
+
+
+#list-container{
+	position:relative;
+width:600px;
+min-height:400px;
+float:left;
+}
+
+#resultList{
+	float:left;
+}
+
+
+
+#Stats{
+margin:30px 0;
+position:relative;
+float:left;
+width:100%;
+}
+
+.jammeurStat{
+	width:200px;
+	float:left;
+}
+
+.highlight{
+	font-weight:bold;
+}
+
+#nav{
+	float:left;
+	margin:0 450px;
+}
+
+#html{
+	border:dotted 1px;
+	padding:15px;
+}
