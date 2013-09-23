@@ -21,13 +21,13 @@
 
 </br>
 <div id='list-container'>
-	<legend>Messages</legend>
+	<legend><i class="icon-envelope-alt"></i>&nbsp;Messages</legend>
 	<table id='resultList'></table>
 </div>
 </br>
 
 <div id='Stats'>
-	<legend>Ranking</legend>
+	<legend><i class="icon-star-empty"></i>&nbsp;Ranking</legend>
 	<?php foreach ($jammeurs as $key => $jammeur) {	if($key>0){?>		
 	<div class='jammeurStat'>	
 	<h4><?php echo $jammeur;?></h4>

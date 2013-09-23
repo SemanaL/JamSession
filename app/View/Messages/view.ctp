@@ -28,7 +28,7 @@ if($content['404']==true){ ?>
 </div>
 </br>
 <?php if($content['father']){ ?>
-<h4>En réponse à :</h4>
+<h4><i class="icon-mail-reply-all"></i>&nbsp;En réponse à :</h4>
 <table>
 	<tr>
 		<td><a href='<?php echo $this->Html->url(array('controller' => 'messages', 'action' => 'view'))."/".$content['father']['id'];?>'><?php echo $content['father']['id'];?></a></td>
@@ -40,7 +40,7 @@ if($content['404']==true){ ?>
 </br>
 <?php } 
 if($content['children'][0]){ ?>
-<h4>Suite :</h4>
+<h4><i class="icon-share-alt"></i>&nbsp;Suite :</h4>
 <table>
 	<?php foreach ($content['children'] as $child) { ?>
 	<tr>
