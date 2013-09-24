@@ -293,7 +293,8 @@ class MessagesController extends AppController{
 				if(!is_null($tmpMessage['father_html'])){
 					$father=$this->Message->find('first',array('conditions'=>array(
 						'Message.html LIKE'=>'%'.substr($tmpMessage['father_html'],0,15).'%',
-						//'DATEDIFF(day, DATE(Message.timestamp), DATE('.$message['Message']['timestamp'].')) < '=>  30
+						'DATE(Message.timestamp) < '=>  date('Y-m-d',strtotime($message['Message']['timestamp'])),
+						'DATE(Message.timestamp) > '=>  date('Y-m-d',strtotime($message['Message']['timestamp']." -30days"))
 					)));
 					if($father){
 						$children=$this->Children->create();
