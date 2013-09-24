@@ -5,11 +5,6 @@ class MessagesController extends AppController{
 	var $uses = array('Message','Jammeur','Keyword','KeywordsMessage','Father');
 	var $components = array();
 
-	 public function beforeFilter() {
-        parent::beforeFilter();
-        $this->Auth->allow('import');
-    }
-
 	function index($id=1){
 		$jammeurs=$this->Jammeur->find('list');
 		$jammeurs[0]="Tous, même Gamin !";
@@ -175,7 +170,7 @@ class MessagesController extends AppController{
 			$this->set('content',$content);
 	}
 
-	function import(){
+	function automaticImport(){
 		$current_path='C:/xampp/htdocs/github/jamsession/mails/new/';
 		//$current_path='/home/import/Maildir/new/';
 		
@@ -188,7 +183,6 @@ class MessagesController extends AppController{
 		foreach($mails as $mail){		
 			$content=file_get_contents($current_path.$mail);
 			if(!is_null($content)){
-				
 				$translator=array(
 					//CHR(10)=>'',
 					//CHR(13)=>'',
@@ -315,6 +309,182 @@ class MessagesController extends AppController{
 			//rename($current_path.$mail, $new_path.$mail);
 		}
 		
+	}
+	
+	function import(){
+		$current_path='C:/xampp/htdocs/github/jamsession/mails/new/';
+		//$current_path='/home/import/Maildir/new/';
+		
+		$mails=array_diff(scandir($current_path), array('..', '.'));
+		$count=count($mails);
+		$this->set('count',$count);
+	}
+	
+	function manualImportGet(){
+		$response = false;
+		$this->layout = 'ajax';
+		
+		$index=json_decode($this->data,true);
+				
+		$current_path='C:/xampp/htdocs/github/jamsession/mails/new/';
+		//$current_path='/home/import/Maildir/new/';
+		
+		$jammeurs=$this->Jammeur->find('all');
+		foreach ($jammeurs as $jammeur) {
+			$addresses[]=$jammeur['Jammeur']['email'];
+		}
+		
+		$mails=array_diff(scandir($current_path), array('..', '.'));
+		$mail=$mails[2+$index];
+		$tmpMessage['filename']=$mail;
+		
+		$content=file_get_contents($current_path.$mail);
+		if(!is_null($content)){
+							
+				$tmpMessage['mail_html']=$content;
+				
+				$translator=array(
+					//CHR(10)=>'',
+					//CHR(13)=>'',
+					'>'=>'',
+					'  '=>' ',
+				);	
+							
+				$startPosition= 0;
+				$startLength = 0;
+				$stopPosition = 0;
+				$stopLength = 0;
+				
+				// WARNING : ENTER DATA IN THE APPEARANCE ORDER IN THE MAIL
+
+				// Get email
+				$startLength=strlen('Return-Path: <');
+				$startPosition=stripos($content,'Return-Path: <',$stopPosition);
+				$stopPosition=stripos($content,'>',$startPosition);
+
+				$tmpMessage['email']=trim(strip_tags(substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition)));
+				
+			
+				// Get Date and Time
+				$startLength=strlen('Date: ');
+				$startPosition=stripos($content,'Date: ',$stopPosition);
+				$stopPosition=stripos($content,'Message-ID',$startPosition);
+
+				$tmpMessage['dateTime']=trim(strip_tags(substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition)));
+				$tmpMessage['dateTime']=date("Y-m-d H:i:s",strtotime($tmpMessage['dateTime']));
+				
+
+				// Get HTML
+				
+				$startLength=strlen('quoted-printable');
+				$startPosition=stripos($content,'quoted-printable',$stopPosition);
+				$tmpStopPosition=strlen($content);
+					foreach ($addresses as $address) {
+						if (stripos($content,$address,$startPosition)<$tmpStopPosition){
+							$tmpStopPosition=stripos($content,$address,$startPosition);
+						}
+					}
+				$subContent=substr($content,0,$tmpStopPosition);
+				$stopPosition=strrpos($subContent,CHR(10));
+				$tmpMessage['html']=trim(substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition));
+				
+				foreach ($translator as $word=>$translation) {
+					$tmpMessage['html']=str_replace($word, $translation, $tmpMessage['html']);
+				}
+				
+				
+				
+				if ($stopPosition!=strlen($content)) {
+					// Get Father HTML
+
+					$GmailStartPosition=stripos($content,'crit :',$stopPosition);
+					$OutlookStartPosition=stripos($content,'JAM SESSION',$stopPosition);
+					
+					if($GmailStartPosition<$OutlookStartPosition){
+						$startLength=strlen('crit :');	
+						$startPosition=$GmailStartPosition;
+					}
+					else{
+						$startLength=strlen('JAM SESSION');	
+						$startPosition=$OutlookStartPosition;
+					}
+
+					$tmpStopPosition=strlen($content);
+					foreach ($addresses as $address) {
+						if (stripos($content,$address,$startPosition)<$tmpStopPosition){
+							$tmpStopPosition=stripos($content,$address,$startPosition);
+						}
+					}
+					$subContent=substr($content,0,$tmpStopPosition);
+					$stopPosition=strrpos($subContent,CHR(10));
+					$tmpMessage['father_html']=substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition);
+					
+					foreach ($translator as $word=>$translation) {
+						$tmpMessage['father_html']=str_replace($word, $translation, $tmpMessage['father_html']);
+					}
+					$tmpMessage['father_html']=trim($tmpMessage['father_html']);
+				}
+				else {
+					$tmpMessage['father_html']=null;
+				}
+
+				$tmpMessage['rest_html']=substr($content,$stopPosition,250)."...";
+
+			echo json_encode($tmpMessage);				
+			
+			}
+
+	}
+
+	function manualImportSave(){
+		
+		$response = false;
+		$this->layout = 'ajax';
+		if(!empty($this->data)){
+		$tmpMessage=json_decode($this->data,true);
+
+		//ENTER MESSAGE IN DB
+		$message=$this->Message->create();
+		$jammeur=$this->Jammeur->findByEmail($tmpMessage['email']);
+		$message['Message']['jammeur_id']=$jammeur['Jammeur']['id'];
+		$message['Message']['timestamp']=$tmpMessage['dateTime']; 
+		$message['Message']['html']=$tmpMessage['html'];
+		
+		$response=$message=$this->Message->save($message);
+		
+		
+		//SET KEYWORDS
+		$keywords=$this->Keyword->find('all');
+		foreach ($keywords as $keyword) {
+			if (stripos($tmpMessage['html'],$keyword['Keyword']['keyword']) != false) {
+			    $match=$this->KeywordsMessage->create();
+				$match['KeywordsMessage']['message_id']=$message['Message']['id'];
+				$match['KeywordsMessage']['keyword_id']=$keyword['Keyword']['id'];
+				$this->KeywordsMessage->save($match);
+			}
+		}
+		
+		//SET FATHER
+		if(!is_null($tmpMessage['father_html'])){
+			$father=$this->Message->find('first',array('conditions'=>array(
+				'Message.html LIKE'=>'%'.substr($tmpMessage['father_html'],0,15).'%',
+				'DATE(Message.timestamp) < '=>  date('Y-m-d',strtotime($message['Message']['timestamp'])),
+				'DATE(Message.timestamp) > '=>  date('Y-m-d',strtotime($message['Message']['timestamp']." -30days"))
+			)));
+			if($father){
+				$children=$this->Father->create();
+				$children['Father']['father_id']=$father['Message']['id'];
+				$children['Father']['children_id']=$message['Message']['id'];
+				$this->Father->save($children);
+			}
+		}
+			$current_path='C:/xampp/htdocs/github/jamsession/mails/new/';
+			$new_path='C:/xampp/htdocs/github/jamsession/mails/parsed/';
+			//$new_path='/home/import/Maildir/parsed/';
+			rename($current_path.$tmpMessage['filename'], $new_path.$tmpMessage['filename']);
+		}
+		
+		echo json_encode($response);
 	}
 }
 ?>

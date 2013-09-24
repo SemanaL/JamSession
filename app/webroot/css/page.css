@@ -57,3 +57,28 @@ width:100%;
 	border:dotted 1px;
 	padding:15px;
 }
+
+#import-container {
+	float:left;
+	position:relative;
+}
+
+#mail-container {
+	float:left;
+	position:relative;
+	margin: 0 20px 0 0;
+}
+
+#import-container textarea{
+	width:400px;
+	height:125px;
+}
+
+#import-container .btn{
+	margin: 0 0 10px 25px;
+}
+
+#mail-container textarea{
+	width:400px;
+	height:620px;
+}
