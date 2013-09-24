@@ -4,7 +4,6 @@ App::uses('AppController', 'Controller');
 class MessagesController extends AppController{		
 	var $uses = array('Message','Jammeur','Keyword','KeywordsMessage','Children');
 	var $components = array();
-	var $helpers = array();	
 
 	function index($id=1){
 		$jammeurs=$this->Jammeur->find('list');
@@ -60,7 +59,7 @@ class MessagesController extends AppController{
 			
 			// Filter messages
 			
-			$messages=$this->Message->find('all', array('conditions'=>$conditions));
+			$messages=$this->Message->find('all', array('conditions'=>$conditions,'order'=>'Message.timestamp DESC LIMIT 20'));
 			
 
 			foreach ($messages as $key=>$message) {
@@ -175,47 +174,107 @@ class MessagesController extends AppController{
 		$current_path='C:/xampp/htdocs/github/jamsession/mails/new/';
 		//$current_path='/home/import/Maildir/new/';
 		
+		$jammeurs=$this->Jammeur->find('all');
+		foreach ($jammeurs as $jammeur) {
+			$addresses[]=$jammeur['Jammeur']['email'];
+		}
+		
 		$mails=array_diff(scandir($current_path), array('..', '.'));
-		foreach($mails as $mail){
-			
-			$content=file_get_contents($mail);
+		foreach($mails as $mail){		
+			$content=file_get_contents($current_path.$mail);
 			if(!is_null($content)){
 				
 				$translator=array(
-					CHR(10)=>'',
-					CHR(13)=>'',
+					//CHR(10)=>'',
+					//CHR(13)=>'',
+					'>'=>'',
 					'  '=>' ',
-				);				
+				);	
+							
 				$startPosition= 0;
 				$startLength = 0;
 				$stopPosition = 0;
 				$stopLength = 0;
 				
 				// WARNING : ENTER DATA IN THE APPEARANCE ORDER IN THE MAIL
+
+				// Get email
+				$startLength=strlen('Return-Path: <');
+				$startPosition=stripos($content,'Return-Path: <',$stopPosition);
+				$stopPosition=stripos($content,'>',$startPosition);
+
+				$tmpMessage['email']=trim(strip_tags(substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition)));
 				
-				$keywords=array(
-				'email'=>array('start'=>'for <','stop'=>'>; '),
-				'dateTime'=>array('start'=>'>Em nome de','stop'=>'min'),
-				'html'=>array('start'=>'<td>','stop'=>'</td>'),
-				'father_html'=>array('start'=>'<td>','stop'=>'</td>')
-				);
+			
+				// Get Date and Time
+				$startLength=strlen('Date: ');
+				$startPosition=stripos($content,'Date: ',$stopPosition);
+				$stopPosition=stripos($content,'Message-ID',$startPosition);
+
+				$tmpMessage['dateTime']=trim(strip_tags(substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition)));
+				$tmpMessage['dateTime']=date("Y-m-d H:i:s",strtotime($tmpMessage['dateTime']));
 				
-				foreach ($keywords as $word=>$keyword) {
-					$startLength=strlen($keyword['start']);
-					$startPosition=stripos($content,$keyword['start'],$stopPosition);
-					$stopPosition=stripos($content,$keyword['stop'],$startPosition);
-					if(!$startPosition || !$stopPosition){
-						$message[$word]=false;
+
+				// Get HTML
+				
+				$startLength=strlen('quoted-printable');
+				$startPosition=stripos($content,'quoted-printable',$stopPosition);
+				$tmpStopPosition=strlen($content);
+					foreach ($addresses as $address) {
+						if (stripos($content,$address,$startPosition)<$tmpStopPosition){
+							$tmpStopPosition=stripos($content,$address,$startPosition);
+						}
 					}
-					else{
-					$tmpMessage[$word]=trim(strip_tags(substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition)));
-					}
+				$subContent=substr($content,0,$tmpStopPosition);
+				$stopPosition=strrpos($subContent,CHR(10));
+				$tmpMessage['html']=trim(substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition));
+				
+				foreach ($translator as $word=>$translation) {
+					$tmpMessage['html']=str_replace($word, $translation, $tmpMessage['html']);
 				}
 				
+				
+				
+				if ($stopPosition!=strlen($content)) {
+					// Get Father HTML
+
+					$GmailStartPosition=stripos($content,'crit :',$stopPosition);
+					$OutlookStartPosition=stripos($content,'JAM SESSION',$stopPosition);
+					
+					if($GmailStartPosition<$OutlookStartPosition){
+						$startLength=strlen('crit :');	
+						$startPosition=$GmailStartPosition;
+					}
+					else{
+						$startLength=strlen('JAM SESSION');	
+						$startPosition=$OutlookStartPosition;
+					}
+
+					$tmpStopPosition=strlen($content);
+					foreach ($addresses as $address) {
+						if (stripos($content,$address,$startPosition)<$tmpStopPosition){
+							$tmpStopPosition=stripos($content,$address,$startPosition);
+						}
+					}
+					$subContent=substr($content,0,$tmpStopPosition);
+					$stopPosition=strrpos($subContent,CHR(10));
+					$tmpMessage['father_html']=substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition);
+					
+					foreach ($translator as $word=>$translation) {
+						$tmpMessage['father_html']=str_replace($word, $translation, $tmpMessage['father_html']);
+					}
+					$tmpMessage['father_html']=trim($tmpMessage['father_html']);
+				}
+				else {
+					$tmpMessage['father_html']=null;
+				}
+				
+				var_dump($tmpMessage);
+
 				//ENTER MESSAGE IN DB
 				$message=$this->Message->create();
 				$jammeur=$this->Jammeur->findByEmail($tmpMessage['email']);
-				$message['Message']['jammeur']=$jammeur['name'];
+				$message['Message']['jammeur_id']=$jammeur['Jammeur']['id'];
 				$message['Message']['timestamp']=$tmpMessage['dateTime']; // DO SOME CHANGES, PROBABLY
 				$message['Message']['html']=$tmpMessage['html'];
 				$message=$this->Message->save($message);
@@ -224,7 +283,7 @@ class MessagesController extends AppController{
 				//SET KEYWORDS
 				$keywords=$this->Keyword->find('list');
 				foreach ($keywords as $key => $keyword) {
-					if (strpos($message['html'],$keyword) !== false) {
+					if (strpos($tmpMessage['html'],$keyword) !== false) {
 					    $match=$this->KeywordsMessage->create();
 						$match['KeywordsMessage']['message_id']=$message['Message']['id'];
 						$match['KeywordsMessage']['keyword_id']=$key;
@@ -233,10 +292,10 @@ class MessagesController extends AppController{
 				}
 				
 				//SET FATHER
-				if(!is_null($message['father_html'])){
+				if(!is_null($tmpMessage['father_html'])){
 					$father=$this->Message->find('first',array('conditions'=>array(
-						'Message.html'=>$message['father_html'],
-						'DATEDIFF(day, DATE(Message.timestamp), DATE('.$message['Message']['timestamp'].')) < '=>  5
+						'Message.html'=>$tmpMessage['father_html'],
+						//'DATEDIFF(day, DATE(Message.timestamp), DATE('.$message['Message']['timestamp'].')) < '=>  30
 					)));
 
 					if($father){
@@ -249,7 +308,7 @@ class MessagesController extends AppController{
 			}
 			$new_path='C:/xampp/htdocs/github/jamsession/mails/parsed/';
 			//$new_path='/home/import/Maildir/parsed/';
-			rename($current_path.$mail, $new_path.$mail);
+			//rename($current_path.$mail, $new_path.$mail);
 		}
 		
 	}

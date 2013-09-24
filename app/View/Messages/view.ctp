@@ -7,7 +7,7 @@ if($content['404']==true){ ?>
 <h4>ID : <span id='id'><?php echo $content['id'];?></span></h4>
 <h4>Envoyé par : <span id='jammeur'><?php echo $content['jammeur'];?></span></h4>
 <h4>Date : <span id='date'><?php echo $content['timestamp'];?></span></h4>
-<h4>Hashtags : 
+<h4>Tags : 
 	<span id='keywords'>
 		<?php 
 		$keywords=$content['keywords'];
