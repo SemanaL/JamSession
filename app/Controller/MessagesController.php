@@ -268,8 +268,6 @@ class MessagesController extends AppController{
 				else {
 					$tmpMessage['father_html']=null;
 				}
-				
-				var_dump($tmpMessage);
 
 				//ENTER MESSAGE IN DB
 				$message=$this->Message->create();
@@ -281,9 +279,9 @@ class MessagesController extends AppController{
 				
 				
 				//SET KEYWORDS
-				$keywords=$this->Keyword->find('list');
+				$keywords=$this->Keyword->find('all');
 				foreach ($keywords as $key => $keyword) {
-					if (strpos($tmpMessage['html'],$keyword) !== false) {
+					if (stripos($tmpMessage['html'],$keyword['Keyword']['keyword']) != false) {
 					    $match=$this->KeywordsMessage->create();
 						$match['KeywordsMessage']['message_id']=$message['Message']['id'];
 						$match['KeywordsMessage']['keyword_id']=$key;
@@ -294,14 +292,14 @@ class MessagesController extends AppController{
 				//SET FATHER
 				if(!is_null($tmpMessage['father_html'])){
 					$father=$this->Message->find('first',array('conditions'=>array(
-						'Message.html'=>$tmpMessage['father_html'],
+						'Message.html LIKE'=>'%'.substr($tmpMessage['father_html'],0,15).'%',
 						//'DATEDIFF(day, DATE(Message.timestamp), DATE('.$message['Message']['timestamp'].')) < '=>  30
 					)));
-
 					if($father){
 						$children=$this->Children->create();
 						$children['Children']['father_id']=$father['Message']['id'];
 						$children['Children']['children_id']=$message['Message']['id'];
+						$this->Children->save($children);
 					}
 				}
 			

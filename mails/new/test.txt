@@ -50,7 +50,7 @@ Content-Type: multipart/alternative; boundary=089e0158c65cb07c0b04e716083a
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-C'est un test de mail !
+C'est un test de mail ! moitax !
 
 
 Le 23 septembre 2013 05:33, Raphael Pagneux <pagneux.raphael@gmail.com> a
