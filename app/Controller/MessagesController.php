@@ -2,8 +2,13 @@
 App::uses('AppController', 'Controller');
 
 class MessagesController extends AppController{		
-	var $uses = array('Message','Jammeur','Keyword','KeywordsMessage','Children');
+	var $uses = array('Message','Jammeur','Keyword','KeywordsMessage','Father');
 	var $components = array();
+
+	 public function beforeFilter() {
+        parent::beforeFilter();
+        $this->Auth->allow('import');
+    }
 
 	function index($id=1){
 		$jammeurs=$this->Jammeur->find('list');
@@ -117,12 +122,12 @@ class MessagesController extends AppController{
 			}
 			
 			// Get Father
-			$fatherMatch=$this->Children->find('first',array('conditions'=>array(
+			$fatherMatch=$this->Father->find('first',array('conditions'=>array(
 				'children_id'=>$id
 			)));
 			
 			if($fatherMatch) {
-				$father=$this->Message->read(null,$fatherMatch['Children']['father_id']);
+				$father=$this->Message->read(null,$fatherMatch['Father']['father_id']);
 				$content['father']['id']=$father['Message']['id'];
 				$content['father']['timestamp']=$father['Message']['timestamp'];
 				
@@ -141,13 +146,13 @@ class MessagesController extends AppController{
 			}
 
 			// Get Children
-			$childrenMatches=$this->Children->find('all',array('conditions'=>array(
+			$childrenMatches=$this->Father->find('all',array('conditions'=>array(
 				'father_id'=>$id
 			)));
 			
 			if($childrenMatches){
 				foreach($childrenMatches as $key=>$childrenMatch){
-					$child=$this->Message->read(null,$childrenMatch['Children']['children_id']);
+					$child=$this->Message->read(null,$childrenMatch['Father']['children_id']);
 					$content['children'][$key]['id']=$child['Message']['id'];
 					$content['children'][$key]['timestamp']=$child['Message']['timestamp'];
 					
@@ -280,11 +285,11 @@ class MessagesController extends AppController{
 				
 				//SET KEYWORDS
 				$keywords=$this->Keyword->find('all');
-				foreach ($keywords as $key => $keyword) {
+				foreach ($keywords as $keyword) {
 					if (stripos($tmpMessage['html'],$keyword['Keyword']['keyword']) != false) {
 					    $match=$this->KeywordsMessage->create();
 						$match['KeywordsMessage']['message_id']=$message['Message']['id'];
-						$match['KeywordsMessage']['keyword_id']=$key;
+						$match['KeywordsMessage']['keyword_id']=$keyword['Keyword']['id'];
 						$this->KeywordsMessage->save($match);
 					}
 				}
@@ -297,10 +302,10 @@ class MessagesController extends AppController{
 						'DATE(Message.timestamp) > '=>  date('Y-m-d',strtotime($message['Message']['timestamp']." -30days"))
 					)));
 					if($father){
-						$children=$this->Children->create();
-						$children['Children']['father_id']=$father['Message']['id'];
-						$children['Children']['children_id']=$message['Message']['id'];
-						$this->Children->save($children);
+						$children=$this->Father->create();
+						$children['Father']['father_id']=$father['Message']['id'];
+						$children['Father']['children_id']=$message['Message']['id'];
+						$this->Father->save($children);
 					}
 				}
 			

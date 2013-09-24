@@ -1,4 +1,5 @@
-<h4><a href="<?php echo $this->Html->url(array('controller' => 'messages', 'action' => 'index'));?>">Retour</a></h4>
+<h4 style="float:right"><a href="<?php echo $this->Html->url(array('controller' => 'users', 'action' => 'logout'));?>">Logout</a></h4>
+<h4><a href="<?php echo $this->Html->url(array('admin'=>true,'controller' => 'messages', 'action' => 'index'));?>">Retour</a></h4>
 </br>
 <?php 
 if($content['404']==true){ ?>
@@ -23,15 +24,15 @@ if($content['404']==true){ ?>
 <div id='html'><?php echo $content['html'];?></div>
 </br>
 <div id='nav'>
-<a id='previous'  href='<?php echo $this->Html->url(array('controller' => 'messages', 'action' => 'view'))."/".($content['id']-1);?>'>PREC</a>
-<a id='next' href='<?php echo $this->Html->url(array('controller' => 'messages', 'action' => 'view'))."/".($content['id']+1);?>'>SUIV</a>
+<a id='previous'  href='<?php echo $this->Html->url(array('admin'=>true,'controller' => 'messages', 'action' => 'view'))."/".($content['id']-1);?>'>PREC</a>
+<a id='next' href='<?php echo $this->Html->url(array('admin'=>true,'controller' => 'messages', 'action' => 'view'))."/".($content['id']+1);?>'>SUIV</a>
 </div>
 </br>
 <?php if($content['father']){ ?>
 <h4><i class="icon-mail-reply-all"></i>&nbsp;En réponse à :</h4>
 <table>
 	<tr>
-		<td><a href='<?php echo $this->Html->url(array('controller' => 'messages', 'action' => 'view'))."/".$content['father']['id'];?>'><?php echo $content['father']['id'];?></a></td>
+		<td><a href='<?php echo $this->Html->url(array('admin'=>true,'controller' => 'messages', 'action' => 'view'))."/".$content['father']['id'];?>'><?php echo $content['father']['id'];?></a></td>
 		<td><?php echo $content['father']['timestamp'];?></td>
 		<td><?php echo $content['father']['jammeur'];?></td>
 		<td><?php echo $content['father']['html'];?></td>
@@ -44,7 +45,7 @@ if($content['children'][0]){ ?>
 <table>
 	<?php foreach ($content['children'] as $child) { ?>
 	<tr>
-		<td><a href='<?php echo $this->Html->url(array('controller' => 'messages', 'action' => 'view'))."/".$child['id'];?>'><?php echo $child['id'];?></a></td>
+		<td><a href='<?php echo $this->Html->url(array('admin'=>true,'controller' => 'messages', 'action' => 'view'))."/".$child['id'];?>'><?php echo $child['id'];?></a></td>
 		<td><?php echo $child['timestamp'];?></td>
 		<td><?php echo $child['jammeur'];?></td>
 		<td><?php echo $child['html'];?></td>
