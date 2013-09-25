@@ -43,7 +43,7 @@ class ParserComponent extends Component{
 				$startPosition=stripos($content,'Date: ',0);
 				
 				//End Parse
-				$endTags=array('MIME','Message-ID','From:');
+				$endTags=array('X-Mailer','MIME','Message-ID','From:');
 				
 				$stopPosition=$end;
 				foreach ($endTags as $endTag) {
