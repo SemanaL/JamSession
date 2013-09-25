@@ -212,6 +212,7 @@ class MessagesController extends AppController{
 		
 		$mails=array_diff(scandir($current_path), array('..', '.'));
 		foreach($mails as $mail){
+		set_time_limit (5);
 		try
   			{
 			$content=file_get_contents($current_path.$mail);
