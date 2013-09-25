@@ -2,7 +2,7 @@
 App::uses('AppController', 'Controller');
 
 class MessagesController extends AppController{		
-	var $uses = array('Message','Jammeur','Keyword','KeywordsMessage','Father');
+	var $uses = array('Message','Jammeur','Keyword','KeywordsMessage','Father','Email');
 	var $components = array();
 
 	function index($id=1){
@@ -336,12 +336,13 @@ Content-Disposition: inline');
 		
 				//ENTER MESSAGE IN DB
 				$message=$this->Message->create();
-				$jammeur=$this->Jammeur->find('first',array(
+				$email=$this->Email->find('first',array(
 						'conditions'=>array('Email.email'=>$tmpMessage['email']
 				)));
-				$message['Message']['jammeur_id']=$jammeur['Jammeur']['id'];
-				$message['Message']['timestamp']=$tmpMessage['dateTime']; // DO SOME CHANGES, PROBABLY
+				$message['Message']['jammeur_id']=$email['Email']['jammeur_id'];
+				$message['Message']['timestamp']=$tmpMessage['dateTime']; 
 				$message['Message']['html']=$tmpMessage['html'];
+				$message['Message']['father_html']=$tmpMessage['father_html'];
 				$message=$this->Message->save($message);
 				
 				
@@ -355,22 +356,7 @@ Content-Disposition: inline');
 						$this->KeywordsMessage->save($match);
 					}
 				}
-				
-				//SET FATHER
-				if(!is_null($tmpMessage['father_html'])){
-					$father=$this->Message->find('first',array('conditions'=>array(
-						'Message.html LIKE'=>'%'.substr($tmpMessage['father_html'],0,15).'%',
-						'DATE(Message.timestamp) < '=>  date('Y-m-d',strtotime($message['Message']['timestamp'])),
-						'DATE(Message.timestamp) > '=>  date('Y-m-d',strtotime($message['Message']['timestamp']." -30days"))
-					)));
-					if($father){
-						$children=$this->Father->create();
-						$children['Father']['father_id']=$father['Message']['id'];
-						$children['Father']['children_id']=$message['Message']['id'];
-						$this->Father->save($children);
-					}
-				}
-			
+							
 			}
 			$new_path='C:/xampp/htdocs/github/jamsession/mails/parsed/';
 			//$new_path='/home/import/Maildir/parsed/';
@@ -566,12 +552,13 @@ Content-Disposition: inline');
 
 		//ENTER MESSAGE IN DB
 		$message=$this->Message->create();
-		$jammeur=$this->Jammeur->find('first',array(
-				'conditions'=>array('Email.email'=>$tmpMessage['email']
-		)));		
-		$message['Message']['jammeur_id']=$jammeur['Jammeur']['id'];
+		$email=$this->Email->find('first',array(
+						'conditions'=>array('Email.email'=>$tmpMessage['email']
+				)));
+		$message['Message']['jammeur_id']=$email['Email']['jammeur_id'];
 		$message['Message']['timestamp']=$tmpMessage['dateTime']; 
 		$message['Message']['html']=$tmpMessage['html'];
+		$message['Message']['father_html']=$tmpMessage['father_html'];
 		
 		$response=$message=$this->Message->save($message);
 		
@@ -586,21 +573,7 @@ Content-Disposition: inline');
 				$this->KeywordsMessage->save($match);
 			}
 		}
-		
-		//SET FATHER
-		if(!is_null($tmpMessage['father_html'])){
-			$father=$this->Message->find('first',array('conditions'=>array(
-				'Message.html LIKE'=>'%'.substr($tmpMessage['father_html'],0,15).'%',
-				'DATE(Message.timestamp) < '=>  date('Y-m-d',strtotime($message['Message']['timestamp'])),
-				'DATE(Message.timestamp) > '=>  date('Y-m-d',strtotime($message['Message']['timestamp']." -30days"))
-			)));
-			if($father){
-				$children=$this->Father->create();
-				$children['Father']['father_id']=$father['Message']['id'];
-				$children['Father']['children_id']=$message['Message']['id'];
-				$this->Father->save($children);
-			}
-		}
+
 			$current_path='C:/xampp/htdocs/github/jamsession/mails/new/';
 			$new_path='C:/xampp/htdocs/github/jamsession/mails/parsed/';
 			//$new_path='/home/import/Maildir/parsed/';
@@ -608,6 +581,28 @@ Content-Disposition: inline');
 		}
 		
 		echo json_encode($response);
+	}
+
+	function setFathers(){
+		$messages=$this->Message->find('all');
+		
+		foreach ($messages as $message) {
+			$father=$this->Father->findByChildren_id($message['Message']['id']);
+				if ($message['Message']['father_html']!="" && !$father) {
+					$match=$this->Message->find('first',array('conditions'=>array(
+					'Message.html LIKE'=>'%'.substr($message['Message']['father_html'],0,15).'%',
+					'DATE(Message.timestamp) < '=>  date('Y-m-d',strtotime($message['Message']['timestamp'])),
+					'DATE(Message.timestamp) > '=>  date('Y-m-d',strtotime($message['Message']['timestamp']." -30days"))
+					)));
+					if($match){
+						$child=$this->Father->create();
+						$child['Father']['father_id']=$match['Message']['id'];
+						$child['Father']['children_id']=$message['Message']['id'];
+						$this->Father->save($child);
+					}
+			}
+			
+		}	
 	}
 }
 ?>
