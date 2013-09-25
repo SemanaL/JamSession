@@ -183,9 +183,12 @@ class MessagesController extends AppController{
 
 		
 		$mails=array_diff(scandir($current_path), array('..', '.'));
+		
+		$this->set('count',count($mails));
+		$index=0;
 		foreach($mails as $mail){		
 			$content=file_get_contents($current_path.$mail);
-			if(!is_null($content)){
+			if(!is_null($content)){				
 				$translator=array(
 					'>'=>'',
 					'  '=>' ',
@@ -254,7 +257,7 @@ Content-Disposition: inline');
 				
 				$stopPosition=$end;
 				foreach ($addresses as $address) {  // Gmail Parsing
-					if (stripos($content,$address."> a =E9",$startPosition) > 0 && stripos($content,$address."> a =E9",$startPosition)<$stopPosition){
+					if (stripos($content,$address." a =E9",$startPosition) > 0 && stripos($content,$address."> a =E9",$startPosition)<$stopPosition){
 						$stopLength=strlen($endTag);	
 						$stopPosition=stripos($content,$address."> a =E9",$startPosition);
 					}
@@ -389,6 +392,8 @@ Content-Disposition: inline');
 				$tmpMessage['mail_html']=$content;
 				
 				$translator=array(
+					CHR(10)=>' ',
+					CHR(13)=>' ',
 					'>'=>'',
 					'  '=>' ',
 					'='=>'',
@@ -456,9 +461,9 @@ Content-Disposition: inline');
 				
 				$stopPosition=$end;
 				foreach ($addresses as $address) {  // Gmail Parsing
-					if (stripos($content,$address."> a =E9",$startPosition) > 0 && stripos($content,$address."> a =E9",$startPosition)<$stopPosition){
+					if (stripos($content,$address.">",$startPosition) > 0 && stripos($content,$address.">",$startPosition)<$stopPosition){
 						$stopLength=strlen($endTag);	
-						$stopPosition=stripos($content,$address."> a =E9",$startPosition);
+						$stopPosition=stripos($content,$address.">",$startPosition);
 					}
 				}
 				
@@ -503,9 +508,9 @@ Content-Disposition: inline');
 					//End Parse
 					$stopPosition=$end;
 					foreach ($addresses as $address) {  // Gmail Parsing
-						if (stripos($content,$address."> a =E9",$startPosition) > 0 && stripos($content,$address."> a =E9",$startPosition)<$stopPosition){
+						if (stripos($content,$address.">",$startPosition) > 0 && stripos($content,$address.">",$startPosition)<$stopPosition){
 							$stopLength=strlen($endTag);	
-							$stopPosition=stripos($content,$address."> a =E9",$startPosition);
+							$stopPosition=stripos($content,$address.">",$startPosition);
 						}
 					}
 					
@@ -585,20 +590,26 @@ Content-Disposition: inline');
 
 	function setFathers(){
 		$messages=$this->Message->find('all');
-		
 		foreach ($messages as $message) {
 			$father=$this->Father->findByChildren_id($message['Message']['id']);
 				if ($message['Message']['father_html']!="" && !$father) {
+					echo "Message ".$message['Message']['id']." does not have father. Looking for : '".substr($message['Message']['father_html'],0,10)."'</br>";
 					$match=$this->Message->find('first',array('conditions'=>array(
-					'Message.html LIKE'=>'%'.substr($message['Message']['father_html'],0,15).'%',
-					'DATE(Message.timestamp) < '=>  date('Y-m-d',strtotime($message['Message']['timestamp'])),
-					'DATE(Message.timestamp) > '=>  date('Y-m-d',strtotime($message['Message']['timestamp']." -30days"))
-					)));
+					'Message.html LIKE'=>substr($message['Message']['father_html'],0,10).'%',
+					'DATE(Message.timestamp) <= '=>  date('Y-m-d H:i:s',strtotime($message['Message']['timestamp'])),
+					'DATE(Message.timestamp) >= '=>  date('Y-m-d',strtotime($message['Message']['timestamp']." -30days"))
+					),
+					'order'=>'Message.timestamp DESC'
+					));
 					if($match){
+						echo "Father Found ! Message is :'".$match['Message']['html']."'</br></br>";
 						$child=$this->Father->create();
 						$child['Father']['father_id']=$match['Message']['id'];
 						$child['Father']['children_id']=$message['Message']['id'];
 						$this->Father->save($child);
+					}
+					else{
+						echo "No Father Found...</br></br>";
 					}
 			}
 			
