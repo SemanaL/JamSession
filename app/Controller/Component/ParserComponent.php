@@ -60,23 +60,42 @@ class ParserComponent extends Component{
 				/********************************************************************************/
 
 				// Get HTML
-
-				//Start Parse
-				$startTags=array('quoted-printable',' quoted-printable
-Content-Disposition: inline');
 				
-				$startPosition=$end;
-				foreach ($startTags as $startTag) {
-					if(stripos($content,$startTag,$stopPosition)>0 && stripos($content,$startTag,$stopPosition)<$startPosition){
-						$startLength=strlen($startTag);
-						$startPosition=stripos($content,$startTag,$stopPosition);
-					}
+				//Start Parse
+				
+				// Check if coded in base 64 :	
+				if(stripos($content,"Content-Transfer-Encoding: base64",$stopPosition)>0){
+					$code64 = substr($content,stripos($content,"Content-Transfer-Encoding: base64",$stopPosition)+strlen("Content-Transfer-Encoding: base64"));
+					
+					// Following part strips non-alphanumeric characters after Base 64
+					preg_match("/[^a-zA-Z0-9\s]/", $code64, $match, PREG_OFFSET_CAPTURE);
+					$index=$match[0][1];
+					$content= base64_decode(substr($code64,0,$index));	
+					
+					$end=strlen($content);
+					$stopPosition=0;
+					$startLength=0;
+					$startPosition=0;
 				}
 				
+				// Not in base 64
+				else{
+				$startTags=array('quoted-printable',' quoted-printable
+				Content-Disposition: inline');
+					$startPosition=$end;
+					foreach ($startTags as $startTag) {
+						if(stripos($content,$startTag,$stopPosition)>0 && stripos($content,$startTag,$stopPosition)<$startPosition){
+							$startLength=strlen($startTag);
+							$startPosition=stripos($content,$startTag,$stopPosition);
+						}
+					}
+				}
+							
 				//End Parse
 				
+				// Gmail Parsing
 				$stopPosition=$end;
-				foreach ($addresses as $address) {  // Gmail Parsing
+				foreach ($addresses as $address) {  
 					if (stripos($content,"<".$address,$startPosition) > 0 && stripos($content,"<".$address,$startPosition)<$stopPosition){
 						$stopLength=strlen($endTag);	
 						$stopPosition=stripos($content,"<".$address,$startPosition);
@@ -154,7 +173,7 @@ Content-Disposition: inline');
 					$tmpMessage['father_html']=trim($tmpMessage['father_html']);
 				}
 				else {
-					$tmpMessage['father_html']=null;
+					$tmpMessage['father_html']="";
 				}
 				$tmpMessage['rest_html']=substr($content,$stopPosition,250)."...";
 			
