@@ -219,7 +219,7 @@ class MessagesController extends AppController{
 			
 				$tmpMessage=$this->Parser->parse($content,$addresses);
 			
-				if(!is_null($tmpMessage['email']) || !is_null($tmpMessage['dateTime']) || !is_null($tmpMessage['html'])){
+				if(!is_null($tmpMessage['email']) && !is_null($tmpMessage['dateTime']) && !is_null($tmpMessage['html'])){
 								
 					//ENTER MESSAGE IN DB
 					$message=$this->Message->create();
@@ -293,7 +293,7 @@ class MessagesController extends AppController{
 		if(!empty($this->data)){
 		$tmpMessage=json_decode($this->data,true);
 
-		if(!is_null($tmpMessage['email']) || !is_null($tmpMessage['dateTime']) || !is_null($tmpMessage['html'])){
+		if(!is_null($tmpMessage['email']) && !is_null($tmpMessage['dateTime']) && !is_null($tmpMessage['html'])){
 
 		//ENTER MESSAGE IN DB
 		$message=$this->Message->create();

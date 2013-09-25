@@ -81,7 +81,7 @@ class ParserComponent extends Component{
 				// Not in base 64
 				else{
 				$startTags=array('quoted-printable',' quoted-printable
-				Content-Disposition: inline');
+				Content-Disposition: inline','<body');
 					$startPosition=$end;
 					foreach ($startTags as $startTag) {
 						if(stripos($content,$startTag,$stopPosition)>0 && stripos($content,$startTag,$stopPosition)<$startPosition){
@@ -103,7 +103,7 @@ class ParserComponent extends Component{
 				}
 				
 				//Other Parsing	
-				$endTags=array('-Original Message-','__________','----------','From:','<mailto:');
+				$endTags=array('-Original Message-','__________','----------','From:','mailto:');
 				
 				
 				foreach ($endTags as $endTag) {
@@ -117,14 +117,15 @@ class ParserComponent extends Component{
 				$stopPosition=strrpos($subContent,CHR(10));
 				
 				//Build HTML
+				
 				$tmpMessage['html']=substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition);
 				
 				//Clean HTML
 				foreach ($translator as $word=>$translation) {
 					$tmpMessage['html']=str_replace($word, $translation, $tmpMessage['html']);
 				}
-				$tmpMessage['html']=trim($tmpMessage['html']);
-				
+				$tmpMessage['html']=trim(strip_tags($tmpMessage['html']));
+												
 				/********************************************************************************/
 				// Get Father HTML
 				if ($stopPosition!=strlen($content)) {
@@ -150,7 +151,7 @@ class ParserComponent extends Component{
 					}
 					
 					//Other Parsing	
-					$endTags=array('-Original Message-','__________','----------','From:','<mailto:');
+					$endTags=array('-Original Message-','__________','----------','From:','mailto:');
 					
 					
 					foreach ($endTags as $endTag) {
@@ -170,7 +171,7 @@ class ParserComponent extends Component{
 					foreach ($translator as $word=>$translation) {
 						$tmpMessage['father_html']=str_replace($word, $translation, $tmpMessage['father_html']);
 					}
-					$tmpMessage['father_html']=trim($tmpMessage['father_html']);
+					$tmpMessage['father_html']=trim(strip_tags($tmpMessage['father_html']));
 				}
 				else {
 					$tmpMessage['father_html']="";
