@@ -170,6 +170,34 @@ class MessagesController extends AppController{
 			$this->set('content',$content);
 	}
 
+	function navigate($dir,$id){
+		$message=$this->Message->read(null,$id);	
+		if ($dir<0){
+			$match=$this->Message->find('first',array('conditions'=>array(
+									'Message.timestamp < '=>  $message['Message']['timestamp'],
+									),
+									'order'=>'Message.timestamp DESC'
+									));
+		}
+		else{
+			$match=$this->Message->find('first',array('conditions'=>array(
+									'Message.timestamp > '=>  $message['Message']['timestamp'],
+									),
+									'order'=>'Message.timestamp ASC'
+									));
+		}	
+			
+		if($match){
+			return $this->redirect(array('action' => 'view',$match['Message']['id']));
+		}
+		else{
+			echo "not found";
+			return $this->redirect(array('action' => 'view',$id));
+		}
+	
+	}
+
+
 	function automaticImport(){
 		$current_path='C:/xampp/htdocs/github/jamsession/mails/new/';
 		//$current_path='/home/import/Maildir/new/';
@@ -596,8 +624,8 @@ Content-Disposition: inline');
 					echo "Message ".$message['Message']['id']." does not have father. Looking for : '".substr($message['Message']['father_html'],0,10)."'</br>";
 					$match=$this->Message->find('first',array('conditions'=>array(
 					'Message.html LIKE'=>substr($message['Message']['father_html'],0,10).'%',
-					'DATE(Message.timestamp) <= '=>  date('Y-m-d H:i:s',strtotime($message['Message']['timestamp'])),
-					'DATE(Message.timestamp) >= '=>  date('Y-m-d',strtotime($message['Message']['timestamp']." -30days"))
+					'Message.timestamp <= '=>  $message['Message']['timestamp'],
+					'Message.timestamp >= '=>  date('Y-m-d H:i:s',strtotime($message['Message']['timestamp']." -30days"))
 					),
 					'order'=>'Message.timestamp DESC'
 					));

@@ -68,7 +68,7 @@ $('document').ready(function(){
 		request.characters = $('#FilterCharacters').val();
 		var jsonRequest = JSON.stringify(request);
 			$.ajax({
-				url: '<?php echo Router::url(array('admin'=>true,'controller'=>'messages','action'=>'getList'),true);?>',
+				url: '<?php echo Router::url(array('controller'=>'messages','action'=>'getList'),true);?>',
 				type: 'post',
 				dataType: 'json',
 				data: {data: jsonRequest},
@@ -79,7 +79,7 @@ $('document').ready(function(){
 								for (var j in response.Messages)
 								{
 								messages+="<tr>";
-								messages+="<td><a href='<?php echo $this->Html->url(array('admin'=>true,'controller' => 'messages', 'action' => 'view'));?>/"+response.Messages[j].id+"' >"+response.Messages[j].id+"</a></td>";
+								messages+="<td><a href='<?php echo $this->Html->url(array('controller' => 'messages', 'action' => 'view'));?>/"+response.Messages[j].id+"' >"+response.Messages[j].id+"</a></td>";
 								messages+="<td>"+response.Messages[j].timestamp+"</td>";
 								messages+="<td>"+response.Messages[j].jammeur+"</td>";
 								messages+="<td>"+response.Messages[j].html+"</td>";
