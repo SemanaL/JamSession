@@ -80,8 +80,8 @@ class MessagesController extends AppController{
 					
 					$jammeur=$this->Jammeur->read(null,$message['Message']['jammeur_id']);
 					$response['Messages'][$key]['jammeur']=$jammeur['Jammeur']['name'];
-					if(strlen($message['Message']['html'])>30){
-						$response['Messages'][$key]['html']=substr($message['Message']['html'],0,30)."...";
+					if(strlen($message['Message']['html'])>45){
+						$response['Messages'][$key]['html']=substr($message['Message']['html'],0,45)."...";
 					}
 					else{
 						$response['Messages'][$key]['html']=$message['Message']['html'];
@@ -211,16 +211,16 @@ class MessagesController extends AppController{
 
 		
 		$mails=array_diff(scandir($current_path), array('..', '.'));
-		
-		$this->set('count',count($mails));
-		$index=0;
-		foreach($mails as $mail){		
+		foreach($mails as $mail){
+					
 			$content=file_get_contents($current_path.$mail);
-			if(!is_null($content)){				
+			if(!is_null($content)){
 				$translator=array(
 					'>'=>'',
 					'  '=>' ',
 					'='=>'',
+					'E0'=>'à',
+					'EA'=>'ê',
 					'E7'=>'ç',
 					'E9'=>'é',
 					'09'=>CHR(10),
@@ -425,6 +425,8 @@ Content-Disposition: inline');
 					'>'=>'',
 					'  '=>' ',
 					'='=>'',
+					'E0'=>'à',
+					'EA'=>'ê',
 					'E7'=>'ç',
 					'E9'=>'é',
 					'09'=>CHR(10),
