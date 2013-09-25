@@ -77,14 +77,14 @@ Content-Disposition: inline');
 				
 				$stopPosition=$end;
 				foreach ($addresses as $address) {  // Gmail Parsing
-					if (stripos($content,$address." a =E9",$startPosition) > 0 && stripos($content,$address."> a =E9",$startPosition)<$stopPosition){
+					if (stripos($content,"<".$address.">",$startPosition) > 0 && stripos($content,"<".$address.">",$startPosition)<$stopPosition){
 						$stopLength=strlen($endTag);	
-						$stopPosition=stripos($content,$address."> a =E9",$startPosition);
+						$stopPosition=stripos($content,"<".$address.">",$startPosition);
 					}
 				}
 				
 				//Other Parsing	
-				$endTags=array('-Original Message-','__________','----------','From:');
+				$endTags=array('-Original Message-','__________','----------','From:','<mailto:');
 				
 				
 				foreach ($endTags as $endTag) {
@@ -124,14 +124,14 @@ Content-Disposition: inline');
 					//End Parse
 					$stopPosition=$end;
 					foreach ($addresses as $address) {  // Gmail Parsing
-						if (stripos($content,$address."> a =E9",$startPosition) > 0 && stripos($content,$address."> a =E9",$startPosition)<$stopPosition){
+						if (stripos($content,"<".$address.">",$startPosition) > 0 && stripos($content,"<".$address.">",$startPosition)<$stopPosition){
 							$stopLength=strlen($endTag);	
-							$stopPosition=stripos($content,$address."> a =E9",$startPosition);
+							$stopPosition=stripos($content,"<".$address.">",$startPosition);
 						}
 					}
 					
 					//Other Parsing	
-					$endTags=array('-Original Message-','__________','----------','From:');
+					$endTags=array('-Original Message-','__________','----------','From:','<mailto:');
 					
 					
 					foreach ($endTags as $endTag) {

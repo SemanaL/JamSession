@@ -219,33 +219,37 @@ class MessagesController extends AppController{
 			
 				$tmpMessage=$this->Parser->parse($content,$addresses);
 			
-				//ENTER MESSAGE IN DB
-				$message=$this->Message->create();
-				$email=$this->Email->find('first',array(
-						'conditions'=>array('Email.email'=>$tmpMessage['email']
-				)));
-				$message['Message']['jammeur_id']=$email['Email']['jammeur_id'];
-				$message['Message']['timestamp']=$tmpMessage['dateTime']; 
-				$message['Message']['html']=$tmpMessage['html'];
-				$message['Message']['father_html']=$tmpMessage['father_html'];
-				$message=$this->Message->save($message);
-				
-				
-				//SET KEYWORDS
-				$keywords=$this->Keyword->find('all');
-				foreach ($keywords as $keyword) {
-					if (stripos($tmpMessage['html'],$keyword['Keyword']['keyword']) != false) {
-					    $match=$this->KeywordsMessage->create();
-						$match['KeywordsMessage']['message_id']=$message['Message']['id'];
-						$match['KeywordsMessage']['keyword_id']=$keyword['Keyword']['id'];
-						$this->KeywordsMessage->save($match);
+				if(!is_null($tmpMessage['email']) && !is_null($tmpMessage['dateTime']) && !is_null($tmpMessage['html'])){
+								
+					//ENTER MESSAGE IN DB
+					$message=$this->Message->create();
+					$email=$this->Email->find('first',array(
+							'conditions'=>array('Email.email'=>$tmpMessage['email']
+					)));
+					$message['Message']['jammeur_id']=$email['Email']['jammeur_id'];
+					$message['Message']['timestamp']=$tmpMessage['dateTime']; 
+					$message['Message']['html']=$tmpMessage['html'];
+					$message['Message']['father_html']=$tmpMessage['father_html'];
+					$message=$this->Message->save($message);
+					
+					
+					//SET KEYWORDS
+					$keywords=$this->Keyword->find('all');
+					foreach ($keywords as $keyword) {
+						if (stripos($tmpMessage['html'],$keyword['Keyword']['keyword']) != false) {
+						    $match=$this->KeywordsMessage->create();
+							$match['KeywordsMessage']['message_id']=$message['Message']['id'];
+							$match['KeywordsMessage']['keyword_id']=$keyword['Keyword']['id'];
+							$this->KeywordsMessage->save($match);
+						}
 					}
+					$new_path='C:/xampp/htdocs/github/jamsession/mails/parsed/';
+					//$new_path='/home/import/Maildir/parsed/';
+					rename($current_path.$mail, $new_path.$mail);
 				}
-							
+			
 			}
-			$new_path='C:/xampp/htdocs/github/jamsession/mails/parsed/';
-			//$new_path='/home/import/Maildir/parsed/';
-			rename($current_path.$mail, $new_path.$mail);
+			
 		}
 		catch(Exception $e)
 		  {
@@ -289,6 +293,8 @@ class MessagesController extends AppController{
 		if(!empty($this->data)){
 		$tmpMessage=json_decode($this->data,true);
 
+		if(!is_null($tmpMessage['email']) && !is_null($tmpMessage['dateTime']) && !is_null($tmpMessage['html'])){
+
 		//ENTER MESSAGE IN DB
 		$message=$this->Message->create();
 		$email=$this->Email->find('first',array(
@@ -313,12 +319,13 @@ class MessagesController extends AppController{
 			}
 		}
 
-			$current_path='C:/xampp/htdocs/github/jamsession/mails/new/';
-			$new_path='C:/xampp/htdocs/github/jamsession/mails/parsed/';
-			//$new_path='/home/import/Maildir/parsed/';
-			rename($current_path.$tmpMessage['filename'], $new_path.$tmpMessage['filename']);
+		$current_path='C:/xampp/htdocs/github/jamsession/mails/new/';
+		$new_path='C:/xampp/htdocs/github/jamsession/mails/parsed/';
+		//$new_path='/home/import/Maildir/parsed/';
+		rename($current_path.$tmpMessage['filename'], $new_path.$tmpMessage['filename']);
 		}
-		
+
+		}
 		echo json_encode($response);
 	}
 
