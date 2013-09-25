@@ -129,8 +129,8 @@ class MessagesController extends AppController{
 				$jammeur=$this->Jammeur->read(null,$father['Message']['jammeur_id']);
 				$content['father']['jammeur']=$jammeur['Jammeur']['name'];
 				
-				if(strlen($father['Message']['html'])>30){
-					$content['father']['html']=substr($father['Message']['html'],0,30)."...";
+				if(strlen($father['Message']['html'])>45){
+					$content['father']['html']=substr($father['Message']['html'],0,45)."...";
 				}
 				else{
 					$content['father']['html']=$father['Message']['html'];
@@ -212,7 +212,8 @@ class MessagesController extends AppController{
 		
 		$mails=array_diff(scandir($current_path), array('..', '.'));
 		foreach($mails as $mail){
-					
+		try
+  			{
 			$content=file_get_contents($current_path.$mail);
 			if(!is_null($content)){
 				$translator=array(
@@ -392,6 +393,11 @@ Content-Disposition: inline');
 			$new_path='C:/xampp/htdocs/github/jamsession/mails/parsed/';
 			//$new_path='/home/import/Maildir/parsed/';
 			rename($current_path.$mail, $new_path.$mail);
+		}
+		catch(Exception $e)
+		  {
+		  echo 'Mail "'.$mail.'" could not be imported due to '.$e->getMessage();
+		  }
 		}
 		
 	}

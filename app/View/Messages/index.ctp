@@ -12,7 +12,7 @@
 		$minchar[0]=0;
 		$minchar[100]=100;
 		$minchar[500]=500;
-		$minchar[5000]=5000;
+		$minchar[2000]=2000;
 		echo $this->form->input('characters',array('options'=>$minchar, 'class'=>'filter-input','label' => 'Min. de caracteres'));
 		?>
 	</form>
