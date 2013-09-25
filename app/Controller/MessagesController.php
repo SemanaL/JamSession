@@ -175,9 +175,13 @@ class MessagesController extends AppController{
 		//$current_path='/home/import/Maildir/new/';
 		
 		$jammeurs=$this->Jammeur->find('all');
+				
 		foreach ($jammeurs as $jammeur) {
-			$addresses[]=$jammeur['Jammeur']['email'];
+			foreach ($jammeur['Email'] as $email) {
+				$addresses[]=$email['email'];	
+			}
 		}
+
 		
 		$mails=array_diff(scandir($current_path), array('..', '.'));
 		foreach($mails as $mail){		
@@ -270,7 +274,9 @@ class MessagesController extends AppController{
 
 				//ENTER MESSAGE IN DB
 				$message=$this->Message->create();
-				$jammeur=$this->Jammeur->findByEmail($tmpMessage['email']);
+				$jammeur=$this->Jammeur->find('first',array(
+						'conditions'=>array('Email.email'=>$tmpMessage['email']
+				)));
 				$message['Message']['jammeur_id']=$jammeur['Jammeur']['id'];
 				$message['Message']['timestamp']=$tmpMessage['dateTime']; // DO SOME CHANGES, PROBABLY
 				$message['Message']['html']=$tmpMessage['html'];
@@ -329,9 +335,11 @@ class MessagesController extends AppController{
 		$current_path='C:/xampp/htdocs/github/jamsession/mails/new/';
 		//$current_path='/home/import/Maildir/new/';
 		
-		$jammeurs=$this->Jammeur->find('all');
+		$jammeurs=$this->Jammeur->find('all');			
 		foreach ($jammeurs as $jammeur) {
-			$addresses[]=$jammeur['Jammeur']['email'];
+			foreach ($jammeur['Email'] as $email) {
+				$addresses[]=$email['email'];	
+			}
 		}
 		
 		$mails=array_diff(scandir($current_path), array('..', '.'));
@@ -445,7 +453,9 @@ class MessagesController extends AppController{
 
 		//ENTER MESSAGE IN DB
 		$message=$this->Message->create();
-		$jammeur=$this->Jammeur->findByEmail($tmpMessage['email']);
+		$jammeur=$this->Jammeur->find('first',array(
+				'conditions'=>array('Email.email'=>$tmpMessage['email']
+		)));		
 		$message['Message']['jammeur_id']=$jammeur['Jammeur']['id'];
 		$message['Message']['timestamp']=$tmpMessage['dateTime']; 
 		$message['Message']['html']=$tmpMessage['html'];

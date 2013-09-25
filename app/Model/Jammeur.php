@@ -2,7 +2,7 @@
 
 class Jammeur extends AppModel {
 
-	var $hasMany = array('Messages');
+	var $hasMany = array('Messages','Email');
 }
 
 ?>
