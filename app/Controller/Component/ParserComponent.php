@@ -16,7 +16,9 @@ class ParserComponent extends Component{
 					'E7'=>'ç',
 					'E9'=>'é',
 					'09'=>CHR(10),
-					'20'=>CHR(13)
+					'20'=>CHR(13),
+					'bgcolor"#ffffff" text"#000000" '=>'',
+					
 				);	
 							
 
