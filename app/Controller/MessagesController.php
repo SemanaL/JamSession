@@ -173,7 +173,6 @@ class MessagesController extends AppController{
 	function automaticImport(){
 		$current_path='C:/xampp/htdocs/github/jamsession/mails/new/';
 		//$current_path='/home/import/Maildir/new/';
-		
 		$jammeurs=$this->Jammeur->find('all');
 				
 		foreach ($jammeurs as $jammeur) {
@@ -188,81 +187,144 @@ class MessagesController extends AppController{
 			$content=file_get_contents($current_path.$mail);
 			if(!is_null($content)){
 				$translator=array(
-					//CHR(10)=>'',
-					//CHR(13)=>'',
 					'>'=>'',
 					'  '=>' ',
+					'='=>'',
+					'E7'=>'ç',
+					'E9'=>'é',
+					'09'=>CHR(10),
+					'20'=>CHR(13)
 				);	
 							
-				$startPosition= 0;
-				$startLength = 0;
-				$stopPosition = 0;
-				$stopLength = 0;
-				
-				// WARNING : ENTER DATA IN THE APPEARANCE ORDER IN THE MAIL
 
-				// Get email
-				$startLength=strlen('Return-Path: <');
-				$startPosition=stripos($content,'Return-Path: <',$stopPosition);
-				$stopPosition=stripos($content,'>',$startPosition);
+				$end=strlen($content);
 
-				$tmpMessage['email']=trim(strip_tags(substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition)));
+				// Get email - Just pick the first known email to appear
 				
+				$startPosition=$end;	
+				$tmpMessage['email']="";
+				foreach ($addresses as $address) { 
+					if (stripos($content,$address,0) > 0 && stripos($content,$address,0)<$startPosition){
+						$startPosition=stripos($content,$address,0);	
+						$tmpMessage['email']=$address;
+					}
+				}
+				$stopPosition=$startPosition+strlen($tmpMessage['email']);
 			
+				/********************************************************************************/
+				
 				// Get Date and Time
+				
+				//Start Parse			
 				$startLength=strlen('Date: ');
-				$startPosition=stripos($content,'Date: ',$stopPosition);
-				$stopPosition=stripos($content,'Message-ID',$startPosition);
-
+				$startPosition=stripos($content,'Date: ',0);
+				
+				//End Parse
+				$endTags=array('MIME','Message-ID','From:');
+				
+				$stopPosition=$end;
+				foreach ($endTags as $endTag) {
+					if(stripos($content,$endTag,$startPosition)>0 && stripos($content,$endTag,$startPosition)<$stopPosition){
+						$stopLength=strlen($endTag);
+						$stopPosition=stripos($content,$endTag,$startPosition);
+					}
+				}
+				
+				//Build DateTime
 				$tmpMessage['dateTime']=trim(strip_tags(substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition)));
 				$tmpMessage['dateTime']=date("Y-m-d H:i:s",strtotime($tmpMessage['dateTime']));
 				
+				/********************************************************************************/
 
 				// Get HTML
+
+				//Start Parse
+				$startTags=array('quoted-printable',' quoted-printable
+Content-Disposition: inline');
 				
-				$startLength=strlen('quoted-printable');
-				$startPosition=stripos($content,'quoted-printable',$stopPosition);
-				$tmpStopPosition=strlen($content);
-					foreach ($addresses as $address) {
-						if (stripos($content,$address,$startPosition)<$tmpStopPosition){
-							$tmpStopPosition=stripos($content,$address,$startPosition);
-						}
+				$startPosition=$end;
+				foreach ($startTags as $startTag) {
+					if(stripos($content,$startTag,$stopPosition)>0 && stripos($content,$startTag,$stopPosition)<$startPosition){
+						$startLength=strlen($startTag);
+						$startPosition=stripos($content,$startTag,$stopPosition);
 					}
-				$subContent=substr($content,0,$tmpStopPosition);
-				$stopPosition=strrpos($subContent,CHR(10));
-				$tmpMessage['html']=trim(substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition));
+				}
 				
+				//End Parse
+				
+				$stopPosition=$end;
+				foreach ($addresses as $address) {  // Gmail Parsing
+					if (stripos($content,$address."> a =E9",$startPosition) > 0 && stripos($content,$address."> a =E9",$startPosition)<$stopPosition){
+						$stopLength=strlen($endTag);	
+						$stopPosition=stripos($content,$address."> a =E9",$startPosition);
+					}
+				}
+				
+				//Other Parsing	
+				$endTags=array('-Original Message-','__________','----------','From:');
+				
+				
+				foreach ($endTags as $endTag) {
+					if(stripos($content,$endTag,$startPosition)>0 && stripos($content,$endTag,$startPosition)<$stopPosition){
+						$stopLength=strlen($endTag);
+						$stopPosition=stripos($content,$endTag,$startPosition);
+					}
+				}
+
+				$subContent=substr($content,0,$stopPosition); // Go backward until first line jump
+				$stopPosition=strrpos($subContent,CHR(10));
+				
+				//Build HTML
+				$tmpMessage['html']=substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition);
+				
+				//Clean HTML
 				foreach ($translator as $word=>$translation) {
 					$tmpMessage['html']=str_replace($word, $translation, $tmpMessage['html']);
 				}
+				$tmpMessage['html']=trim($tmpMessage['html']);
 				
-				
-				
+				/********************************************************************************/
+				// Get Father HTML
 				if ($stopPosition!=strlen($content)) {
-					// Get Father HTML
 
-					$GmailStartPosition=stripos($content,'crit :',$stopPosition);
-					$OutlookStartPosition=stripos($content,'JAM SESSION',$stopPosition);
+					//Start Parse
+					$startTags=array('crit :','JAM SESSION');
 					
-					if($GmailStartPosition<$OutlookStartPosition){
-						$startLength=strlen('crit :');	
-						$startPosition=$GmailStartPosition;
-					}
-					else{
-						$startLength=strlen('JAM SESSION');	
-						$startPosition=$OutlookStartPosition;
-					}
-
-					$tmpStopPosition=strlen($content);
-					foreach ($addresses as $address) {
-						if (stripos($content,$address,$startPosition)<$tmpStopPosition){
-							$tmpStopPosition=stripos($content,$address,$startPosition);
+					$startPosition=$end;
+					foreach ($startTags as $startTag) {
+						if(stripos($content,$startTag,$stopPosition)>0 && stripos($content,$startTag,$stopPosition)<$startPosition){
+							$startLength=strlen($startTag);
+							$startPosition=stripos($content,$startTag,$stopPosition);
 						}
 					}
-					$subContent=substr($content,0,$tmpStopPosition);
+					
+					//End Parse
+					$stopPosition=$end;
+					foreach ($addresses as $address) {  // Gmail Parsing
+						if (stripos($content,$address."> a =E9",$startPosition) > 0 && stripos($content,$address."> a =E9",$startPosition)<$stopPosition){
+							$stopLength=strlen($endTag);	
+							$stopPosition=stripos($content,$address."> a =E9",$startPosition);
+						}
+					}
+					
+					//Other Parsing	
+					$endTags=array('-Original Message-','__________','----------','From:');
+					
+					
+					foreach ($endTags as $endTag) {
+						if(stripos($content,$endTag,$startPosition)>0 && stripos($content,$endTag,$startPosition)<$stopPosition){
+							$stopLength=strlen($endTag);
+							$stopPosition=stripos($content,$endTag,$startPosition);
+						}
+					}
+					
+					$subContent=substr($content,0,$stopPosition); // Go backward until first line jump
 					$stopPosition=strrpos($subContent,CHR(10));
+					
+					//Build HTML
 					$tmpMessage['father_html']=substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition);
 					
+					//Clean HTML
 					foreach ($translator as $word=>$translation) {
 						$tmpMessage['father_html']=str_replace($word, $translation, $tmpMessage['father_html']);
 					}
@@ -271,7 +333,7 @@ class MessagesController extends AppController{
 				else {
 					$tmpMessage['father_html']=null;
 				}
-
+		
 				//ENTER MESSAGE IN DB
 				$message=$this->Message->create();
 				$jammeur=$this->Jammeur->find('first',array(
@@ -312,7 +374,7 @@ class MessagesController extends AppController{
 			}
 			$new_path='C:/xampp/htdocs/github/jamsession/mails/parsed/';
 			//$new_path='/home/import/Maildir/parsed/';
-			//rename($current_path.$mail, $new_path.$mail);
+			rename($current_path.$mail, $new_path.$mail);
 		}
 		
 	}
@@ -341,8 +403,6 @@ class MessagesController extends AppController{
 				$tmpMessage['mail_html']=$content;
 				
 				$translator=array(
-					//CHR(10)=>'',
-					//CHR(13)=>'',
 					'>'=>'',
 					'  '=>' ',
 					'='=>'',
