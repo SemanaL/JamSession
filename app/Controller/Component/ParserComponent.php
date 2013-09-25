@@ -77,9 +77,9 @@ Content-Disposition: inline');
 				
 				$stopPosition=$end;
 				foreach ($addresses as $address) {  // Gmail Parsing
-					if (stripos($content,"<".$address.">",$startPosition) > 0 && stripos($content,"<".$address.">",$startPosition)<$stopPosition){
+					if (stripos($content,"<".$address,$startPosition) > 0 && stripos($content,"<".$address,$startPosition)<$stopPosition){
 						$stopLength=strlen($endTag);	
-						$stopPosition=stripos($content,"<".$address.">",$startPosition);
+						$stopPosition=stripos($content,"<".$address,$startPosition);
 					}
 				}
 				
@@ -124,9 +124,9 @@ Content-Disposition: inline');
 					//End Parse
 					$stopPosition=$end;
 					foreach ($addresses as $address) {  // Gmail Parsing
-						if (stripos($content,"<".$address.">",$startPosition) > 0 && stripos($content,"<".$address.">",$startPosition)<$stopPosition){
+						if (stripos($content,"<".$address,$startPosition) > 0 && stripos($content,"<".$address,$startPosition)<$stopPosition){
 							$stopLength=strlen($endTag);	
-							$stopPosition=stripos($content,"<".$address.">",$startPosition);
+							$stopPosition=stripos($content,"<".$address,$startPosition);
 						}
 					}
 					
