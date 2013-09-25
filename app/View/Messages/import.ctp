@@ -4,65 +4,47 @@
 </br>
 <div id='mail-container'>
 	<label id='filename-label'>fichier</label>
-	<input type='text' id='filename' />
+	<input type='text' id='filename' value="<?php echo $tmpMessage['filename']; ?>" />
 	
 	<label id='email-label'>email brut</label>
-	<textarea id='mail-html'></textarea>
+	<textarea id='mail-html'><?php echo $tmpMessage['mail_html']; ?></textarea>
 </div>
 
 <div id='import-container'>
 		<label id='email-label'>email</label>
-		<input type='text' id='email' />
+		<input type='text' id='email' value="<?php echo $tmpMessage['email']; ?>" />
 		<input type='submit' id ='Submit' value='Importer' class='btn btn-primary'></input>
 		
 		<label id='date-label'>Date</label>
-		<input type='date' id='date' />
-		<input type='submit' id ='Next' value='Prochain' class='btn btn-primary'></input>
+		<input type='date' id='date' value="<?php echo $tmpMessage['dateTime']; ?>" />
+		<a href="<?php echo $this->Html->url(array('admin'=>true,'controller' => 'messages', 'action' => 'import'))."/".($id-1);?>">
+		<input type='submit' value='Precedent' class='btn btn-primary'></input>
+		</a>
+		
+		<a href="<?php echo $this->Html->url(array('admin'=>true,'controller' => 'messages', 'action' => 'import'))."/".($id+1);?>">
+		<input type='submit' value='Suivant' class='btn btn-primary'></input>
+		</a>
+		
 		
 		<label id='html-label'>Message</label>
-		<textarea id='html'></textarea>
+		<textarea id='html'><?php echo $tmpMessage['html']; ?></textarea>
 		
 		<label id='father-html-label'>Message Precedent</label>
-		<textarea id='father-html'></textarea>
+		<textarea id='father-html'><?php echo $tmpMessage['father_html']; ?></textarea>
 				
 		<label id='rest-html-label'>Reste</label>
-		<textarea id='rest-html'></textarea>
+		<textarea id='rest-html'><?php echo $tmpMessage['rest_html']; ?></textarea>
 </div>
 
 <script>
 $('document').ready(function(){	
-	var index=0;
-	function manualImportGet(){
-			var jsonRequest = JSON.stringify(index);
-			$.ajax({
-				url: '<?php echo Router::url(array('admin'=>true,'controller'=>'messages','action'=>'manualImportGet'),true);?>',
-				type: 'post',
-				dataType: 'json',
-				data: {data: jsonRequest},
-					success: function(tmpMessage) {
-						if(tmpMessage){
-							$("#email").val(tmpMessage.email);
-							$("#date").val(tmpMessage.dateTime);
-							$("#html").val(tmpMessage.html);
-							$("#father-html").val(tmpMessage.father_html);
-							$("#rest-html").val(tmpMessage.rest_html);
-							$("#mail-html").val(tmpMessage.mail_html);
-							$("#filename").val(tmpMessage.filename);
-						}	
-					},
-					error:function( req, status, err ) {
-						console.log( 'Impossible to open the profile edition');
-					}
-			});	
-	}
-	
 	function manualImportSave(){
 		var request = {};	
 		request.filename=$("#filename").val();	
 		request.email=$("#email").val();
 		request.dateTime=$("#date").val();
-		request.html=$("#html").val();
-		request.father_html=$("#father-html").val();
+		request.html=$("#html").html();
+		request.father_html=$("#father-html").html();
 		var jsonRequest = JSON.stringify(request);
 			$.ajax({
 				url: '<?php echo Router::url(array('admin'=>true,'controller'=>'messages','action'=>'manualImportSave'),true);?>',
@@ -77,14 +59,6 @@ $('document').ready(function(){
 					}
 			});	
 	}
-	
-	
-	manualImportGet(index);
-	
-	$("#Next").click(function(){
-		index++;
-		manualImportGet(index);
-	});
 	
 	$("#Submit").click(function(){
 		manualImportSave()
