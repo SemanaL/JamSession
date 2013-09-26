@@ -10,15 +10,24 @@ class ParserComponent extends Component{
 		$translator=array(
 					'>'=>'',
 					'  '=>' ',
-					'='=>'',
+					'='=>'',		
 					'E0'=>'à',
-					'EA'=>'ê',
 					'E7'=>'ç',
 					'E9'=>'é',
+					'E8'=>'è',
+					'F9'=>'ù',
+					'EA'=>'ê',
+					'92'=>'\'',
+					'93'=>'\'',
+					'94'=>'\'',
 					'09'=>CHR(10),
 					'20'=>CHR(13),
-					'bgcolor"#ffffff" text"#000000" '=>'',
-					
+					'bgcolor"#ffffff"'=>'',
+					'bgcolor"#FFFFFF"'=>'',
+					'text"#000000"'=>'',
+					'Content-Disposition: inline'=>'',
+					'Content-Type: text/plain;'=>'',
+					'charsetutf-8'=>'',
 				);	
 							
 
@@ -45,7 +54,7 @@ class ParserComponent extends Component{
 				$startPosition=stripos($content,'Date: ',0);
 				
 				//End Parse
-				$endTags=array('X-Mailer','MIME','Message-ID','From:');
+				$endTags=array('X-MIME','X-Mailer','MIME','Message-ID','From:','To:');
 				
 				$stopPosition=$end;
 				foreach ($endTags as $endTag) {
@@ -65,8 +74,18 @@ class ParserComponent extends Component{
 				
 				//Start Parse
 				
-				// Check if coded in base 64 :	
-				if(stripos($content,"Content-Transfer-Encoding: base64",$stopPosition)>0){
+				$currentTag="";
+				$startTags=array('0'=>'Content-Transfer-Encoding: base64','1'=>'Content-Transfer-Encoding: quoted-printable','2'=>'<body');
+					$startPosition=$end;
+					foreach ($startTags as $key=>$startTag) {
+						if(stripos($content,$startTag,$stopPosition)>0 && stripos($content,$startTag,$stopPosition)<$startPosition){
+							$currentTag=$key;	
+							$startLength=strlen($startTag);
+							$startPosition=stripos($content,$startTag,$stopPosition);
+						}
+					}
+					
+				if ($currentTag=='0') {
 					$code64 = substr($content,stripos($content,"Content-Transfer-Encoding: base64",$stopPosition)+strlen("Content-Transfer-Encoding: base64"));
 					
 					// Following part strips non-alphanumeric characters after Base 64
@@ -78,19 +97,6 @@ class ParserComponent extends Component{
 					$stopPosition=0;
 					$startLength=0;
 					$startPosition=0;
-				}
-				
-				// Not in base 64
-				else{
-				$startTags=array('quoted-printable',' quoted-printable
-				Content-Disposition: inline','<body');
-					$startPosition=$end;
-					foreach ($startTags as $startTag) {
-						if(stripos($content,$startTag,$stopPosition)>0 && stripos($content,$startTag,$stopPosition)<$startPosition){
-							$startLength=strlen($startTag);
-							$startPosition=stripos($content,$startTag,$stopPosition);
-						}
-					}
 				}
 							
 				//End Parse

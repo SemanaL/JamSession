@@ -211,7 +211,7 @@ class MessagesController extends AppController{
 
 		$mails=array_diff(scandir($current_path), array('..', '.'));
 		foreach($mails as $mail){
-		set_time_limit (5);
+		set_time_limit (30);
 		try
   			{
 			$content=file_get_contents($current_path.$mail);
@@ -276,6 +276,8 @@ class MessagesController extends AppController{
 		
 		$mail=$mails[2+$id];
 
+		set_time_limit (120);
+
 		$content=file_get_contents($current_path.$mail);
 		if(!is_null($content)){		
 			$tmpMessage=$this->Parser->parse($content,$addresses);
@@ -330,6 +332,7 @@ class MessagesController extends AppController{
 	}
 
 	function setFathers(){
+		set_time_limit (120);
 		$messages=$this->Message->find('all');
 		foreach ($messages as $message) {
 			$father=$this->Father->findByChildren_id($message['Message']['id']);
