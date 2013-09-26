@@ -10,13 +10,25 @@ class ParserComponent extends Component{
 		$translator=array(
 					'>'=>'',
 					'  '=>' ',
-					'='=>'',		
+					'='=>'',
+					'&agrave;'=>'à',
+					'&egrave;'=>'è',
+					'&eacute;'=>'é',
+					'&ecirc;'=>'ê',
+					'&euml;'=>'ë',
+					'&ocirc;'=>'ô',
+					'&ouml;'=>'ö',
+					'&ugrave;'=>'ù',
+					'&ucirc;'=>'û',	
+					'&ccedil;'=>'ç',
 					'E0'=>'à',
-					'E7'=>'ç',
 					'E9'=>'é',
 					'E8'=>'è',
-					'F9'=>'ù',
 					'EA'=>'ê',
+					'F4'=>'ô',
+					'F9'=>'ù',
+					'FB'=>'û',
+					'E7'=>'ç',
 					'92'=>'\'',
 					'93'=>'\'',
 					'94'=>'\'',
@@ -29,7 +41,6 @@ class ParserComponent extends Component{
 					'Content-Type: text/plain;'=>'',
 					'charsetutf-8'=>'',
 				);	
-							
 
 				$end=strlen($content);
 
