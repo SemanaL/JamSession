@@ -82,8 +82,8 @@ $('document').ready(function(){
 				dataType: 'json',
 				data: {data: jsonRequest},
 					success: function(response) {
+					$('#loadingGif').css("display","none");
 					if(response){
-								$('#loadingGif').css("display","none");
 								$resultList = $('#resultList');
 								messages="";
 								for (var j in response.Messages)

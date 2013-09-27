@@ -355,6 +355,9 @@ class MessagesController extends AppController{
 						$child['Father']['father_id']=$match['Message']['id'];
 						$child['Father']['children_id']=$message['Message']['id'];
 						$this->Father->save($child);
+						// Clean 'Father field'
+						$message['Message']['father_html']="";
+						$this->Message->save($message);
 					}
 					else{
 						echo "No Father Found...</br></br>";

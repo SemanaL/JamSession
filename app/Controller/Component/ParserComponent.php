@@ -8,9 +8,13 @@ class ParserComponent extends Component{
 		$tmpMessage['mail_html']=$content;
 
 		$translator=array(
-					'>'=>'',
 					'  '=>' ',
+					'<
+'=>'<',
+					'< '=>'<',
+					'>'=>'',
 					'='=>'',
+					'&acirc;'=>'â',
 					'&agrave;'=>'à',
 					'&egrave;'=>'è',
 					'&eacute;'=>'é',
@@ -22,18 +26,18 @@ class ParserComponent extends Component{
 					'&ucirc;'=>'û',	
 					'&ccedil;'=>'ç',
 					'E0'=>'à',
+					'E2'=>'â',
 					'E9'=>'é',
 					'E8'=>'è',
 					'EA'=>'ê',
 					'F4'=>'ô',
 					'F9'=>'ù',
 					'FB'=>'û',
-					'E7'=>'ç',
+					'E7'=>'ç',	
+					'85'=>'...',		
 					'92'=>'\'',
 					'93'=>'\'',
 					'94'=>'\'',
-					'09'=>CHR(10),
-					'20'=>CHR(13),
 					'bgcolor"#ffffff"'=>'',
 					'bgcolor"#FFFFFF"'=>'',
 					'text"#000000"'=>'',
@@ -41,6 +45,10 @@ class ParserComponent extends Component{
 					'Content-Type: text/plain;'=>'',
 					'charsetutf-8'=>'',
 				);	
+
+			foreach ($translator as $word=>$translation) {
+					$content=str_replace($word, $translation, $content);
+				}
 
 				$end=strlen($content);
 
@@ -137,14 +145,8 @@ class ParserComponent extends Component{
 				
 				//Build HTML
 				
-				$tmpMessage['html']=substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition);
-				
-				//Clean HTML
-				foreach ($translator as $word=>$translation) {
-					$tmpMessage['html']=str_replace($word, $translation, $tmpMessage['html']);
-				}
-				$tmpMessage['html']=trim(strip_tags($tmpMessage['html']));
-												
+				$tmpMessage['html']=trim(strip_tags(substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition)));
+
 				/********************************************************************************/
 				// Get Father HTML
 				if ($stopPosition!=strlen($content)) {
@@ -184,13 +186,8 @@ class ParserComponent extends Component{
 					$stopPosition=strrpos($subContent,CHR(10));
 					
 					//Build HTML
-					$tmpMessage['father_html']=substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition);
-					
-					//Clean HTML
-					foreach ($translator as $word=>$translation) {
-						$tmpMessage['father_html']=str_replace($word, $translation, $tmpMessage['father_html']);
-					}
-					$tmpMessage['father_html']=trim(strip_tags($tmpMessage['father_html']));
+					$tmpMessage['father_html']=trim(strip_tags(substr($content,$startLength+$startPosition,$stopPosition-$startLength-$startPosition)));
+
 				}
 				else {
 					$tmpMessage['father_html']="";
