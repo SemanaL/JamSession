@@ -353,7 +353,7 @@ class MessagesController extends AppController{
 	}
 
 	function setFathers(){
-		set_time_limit (120);
+		set_time_limit (300);
 		$messages=$this->Message->find('all');
 		foreach ($messages as $message) {
 			$father=$this->Father->findByChildren_id($message['Message']['id']);
