@@ -45,8 +45,11 @@ class MessagesController extends AppController{
 			if($filters['jammeur']>0){
 				$conditions['Message.jammeur_id']=$filters['jammeur'];
 			}	
-			if(!empty($filters['date'])){
-				$conditions['DATE(Message.timestamp)']=$filters['date'];
+			if(!empty($filters['startDate'])){
+				$conditions['Message.timestamp >=']=date('Y-m-d H:i:s',strtotime($filters['startDate']."00:00:00"));
+			}
+			if(!empty($filters['endDate'])){
+				$conditions['Message.timestamp <=']=date('Y-m-d H:i:s',strtotime($filters['endDate']."23:59:59"));
 			}
 			
 			if($filters['id']!=""){
@@ -58,22 +61,23 @@ class MessagesController extends AppController{
 			}
 			
 			// Filter messages
-			
-			$messages=$this->Message->find('all', array('conditions'=>$conditions,'order'=>'Message.timestamp DESC LIMIT 20'));
-			
+			if($filters['keyword']!=""){
+					$messages=$this->Message->find('all', array('conditions'=>$conditions));
+					$keyword=$this->Keyword->findByKeyword($filters['keyword']);
+				}
+
+			else{
+					$messages=$this->Message->find('all', array('conditions'=>$conditions,'order'=>'Message.timestamp DESC LIMIT 20'));
+			}
 
 			foreach ($messages as $key=>$message) {
-				$match=null;
-				
-				if($filters['keyword']!=""){
-					$keyword=$this->Keyword->findByKeyword($filters['keyword']);
-					
+				$match=null;	
+				if($filters['keyword']!=""){					
 					$match=$this->KeywordsMessage->find('first', array('conditions'=>array(
 							'KeywordsMessage.message_id'=>$message['Message']['id'],
 							'KeywordsMessage.keyword_id'=>$keyword['Keyword']['id']
 						)));
 				}
-
 				if($filters['keyword']=="" || $match){	
 					$response['Messages'][$key]['id']=$message['Message']['id'];
 					$response['Messages'][$key]['timestamp']=$message['Message']['timestamp'];

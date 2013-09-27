@@ -12,12 +12,23 @@ h4{
 	font-size:18px;
 }
 
+#loadingGif{
+	margin:0 0 0 300px;
+	display:none;
+	width: 40px;
+	height: 40px;
+	background:url(../img/loading.gif) no-repeat;
+}
+
 #filter-container{
 position:relative;
 width:300px;
 float:left;
 }
 
+#filter-container .input{
+margin: 0;
+}
 
 #list-container{
 	position:relative;

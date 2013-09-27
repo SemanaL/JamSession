@@ -6,7 +6,8 @@
 	?>
 		<?php 
 		echo $this->form->input('id',array('class'=>'filter-input'));
-		echo $this->form->input('date',array('class'=>'filter-input'));
+		echo $this->form->input('startDate',array('class'=>'filter-input'));
+		echo $this->form->input('endDate',array('class'=>'filter-input'));
 		echo $this->form->input('jammeur',array('options'=>$jammeurs,'selected' => 0,'class'=>'filter-input'));
 		echo $this->form->input('keyword',array('class'=>'filter-input'));
 		$minchar[0]=0;
@@ -24,6 +25,7 @@
 <div id='list-container'>
 	<legend><i class="icon-envelope-alt"></i>&nbsp;Messages</legend>
 	<table id='resultList'></table>
+	<div id='loadingGif'></div>
 </div>
 </br>
 
@@ -44,7 +46,11 @@
 
 <script>
 $('document').ready(function(){	
-	$('#FilterDate').datepicker(
+	$('#FilterStartDate').datepicker(
+		{ dateFormat: "yy-mm-dd"}
+	);	
+	
+	$('#FilterEndDate').datepicker(
 		{ dateFormat: "yy-mm-dd"}
 	);	
 	
@@ -60,9 +66,12 @@ $('document').ready(function(){
 	});
 
 	function getList(){
+		$('#resultList').html("");
+		$('#loadingGif').css("display","block");
 		var request = {};		
 		request.id = $('#FilterId').val();
-		request.date = $('#FilterDate').val();
+		request.startDate = $('#FilterStartDate').val();
+		request.endDate = $('#FilterEndDate').val();
 		request.jammeur = $('#FilterJammeur').val();
 		request.keyword = $('#FilterKeyword').val();
 		request.characters = $('#FilterCharacters').val();
@@ -74,6 +83,7 @@ $('document').ready(function(){
 				data: {data: jsonRequest},
 					success: function(response) {
 					if(response){
+								$('#loadingGif').css("display","none");
 								$resultList = $('#resultList');
 								messages="";
 								for (var j in response.Messages)
