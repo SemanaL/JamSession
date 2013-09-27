@@ -204,7 +204,9 @@ class MessagesController extends AppController{
 
 	function automaticImport(){
 		$current_path='C:/xampp/htdocs/github/jamsession/mails/new/';
+		$new_path='C:/xampp/htdocs/github/jamsession/mails/parsed/';
 		//$current_path='/home/import/Maildir/new/';
+		//$new_path='/home/import/Maildir/parsed/';
 		
 		$jammeurs=$this->Jammeur->find('all');			
 		foreach ($jammeurs as $jammeur) {
@@ -212,8 +214,17 @@ class MessagesController extends AppController{
 				$addresses[]=$email['email'];	
 			}
 		}
-
-		$mails=array_diff(scandir($current_path), array('..', '.'));
+		
+		$folders=array_diff(scandir($current_path), array('..', '.'));
+		$mails=array();
+		foreach ($folders as $folder) {
+			$folderMails=array_diff(scandir($current_path."/".$folder."/"), array('..', '.'));
+			foreach ($folderMails as $key=>$folderMail) {
+				$folderMails[$key]=$folder."/".$folderMail;
+			}
+			$mails=array_merge($mails,$folderMails);
+			mkdir ($new_path.$folder);
+		}
 		foreach($mails as $mail){
 		set_time_limit (30);
 		try
@@ -247,8 +258,8 @@ class MessagesController extends AppController{
 							$this->KeywordsMessage->save($match);
 						}
 					}
-					$new_path='C:/xampp/htdocs/github/jamsession/mails/parsed/';
-					//$new_path='/home/import/Maildir/parsed/';
+					
+					
 					rename($current_path.$mail, $new_path.$mail);
 				}
 			
@@ -275,7 +286,13 @@ class MessagesController extends AppController{
 			}
 		}
 
-		$mails=array_diff(scandir($current_path), array('..', '.'));
+		
+		$folders=array_diff(scandir($current_path), array('..'));
+		$mails=array();
+		foreach ($folders as $folder) {
+			$mails=array_merge(array_diff(scandir($current_path."/".$folder."/"), array('..', '.')),$mails);
+		}
+
 		$this->set('count',count($mails));
 		
 		$mail=$mails[2+$id];
